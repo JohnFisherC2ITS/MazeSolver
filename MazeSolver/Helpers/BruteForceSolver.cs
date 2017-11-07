@@ -10,7 +10,7 @@ using MazeSolver.Models;
 
 namespace MazeSolver.Helpers
 {
-    public class Solver
+    public class BruteForceSolver
     {
         private const char Start = 'A';
         private const char Clear = '.';
@@ -21,13 +21,14 @@ namespace MazeSolver.Helpers
         private int mHeight;
         private int mWidth;
         private char[][] mArray;
+        private Node mGoal;
 
         public static SolverResult Solve(string maze)
         {
             var sw = new Stopwatch();
             sw.Start();
 
-            var solver = new Solver(maze);
+            var solver = new BruteForceSolver(maze);
             var paths = solver.FindCompletePaths();
 
             sw.Stop();
@@ -53,15 +54,16 @@ namespace MazeSolver.Helpers
             };
         }
 
-        private Solver(string maze)
+        private BruteForceSolver(string maze)
         {
             var lines = Regex.Split(maze, @"\r\n|\r|\n", RegexOptions.Compiled);
             mArray = lines.Select(x => x.ToCharArray()).ToArray();
             mHeight = mArray.Length;
             mWidth = mArray.Max(x => x.Length);
+            mGoal = Find(End);
         }
 
-        private Step FindStart()
+        private Node Find(char uniqueCharacter)
         {
             var row = -1;
             var col = -1; // Set col to -1 until Start is found.
@@ -72,7 +74,7 @@ namespace MazeSolver.Helpers
                 for (var c = 0; c < mWidth && row < 0; ++c)
                 {
                     var spot = mArray[r][c];
-                    if (spot == Start)
+                    if (spot == uniqueCharacter)
                     {
                         row = r;
                         col = c;
@@ -80,7 +82,7 @@ namespace MazeSolver.Helpers
                 }
             }
 
-            return new Step { Row = row, Col = col };
+            return new Node { Row = row, Col = col };
         }
 
         private List<Path> FindCompletePaths()
@@ -89,7 +91,9 @@ namespace MazeSolver.Helpers
             var completePaths = new List<Path>();
             while (paths.Any())
             {
-                var path = paths.Pop();
+                var nearest = paths.First(); // get the one that's currently nearest to the goal.
+                paths.RemoveAt(0); // Remove it.
+                var path = nearest.Key;
                 switch (path.Status)
                 {
                     case PathStatus.Finished:
@@ -102,7 +106,7 @@ namespace MazeSolver.Helpers
                     case PathStatus.Incomplete:
                         foreach (var p in ExtendPath(path))
                         {
-                            paths.Push(p);
+                            paths.Add(p.Key, p.Value);
                         }
                         break;
                 }
@@ -111,12 +115,12 @@ namespace MazeSolver.Helpers
             return completePaths;
         }
 
-        private Stack<Path> ExtendPath(Path path)
+        private SortedList<Path, decimal> ExtendPath(Path path)
         {
-            var result = new Stack<Path>();
+            var result = new SortedList<Path, decimal>(new RemainingDistanceComparer(mGoal));
 
             // Find the last step, or create the first step and path if path is null.
-            var step = path?.LastStep ?? FindStart();
+            var step = path?.LastNode ?? Find(Start);
             path = path ?? new Path();
 
             for (var x = -1; x <= 1; ++x)
@@ -141,12 +145,13 @@ namespace MazeSolver.Helpers
                             if (!path.ContainsStep(row, col))
                             {
                                 // We found a valid next step.
-                                result.Push(path.AddStep(row, col));
+                                var newPath = path.AddStep(row, col);
+                                result.Add(newPath, newPath.LastNode.GetDistanceTo(mGoal));
                             }
                             break;
                         case End:
                             path.Status = PathStatus.Finished;
-                            result.Push(path); // No added steps, but make sure that the fact that this is finished gets returned!
+                            result.Add(path, path.LastNode.GetDistanceTo(mGoal)); // No added steps, but make sure that the fact that this is finished gets returned!
                             break;
                     }
                 }

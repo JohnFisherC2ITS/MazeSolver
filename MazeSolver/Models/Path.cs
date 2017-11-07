@@ -5,7 +5,7 @@ namespace MazeSolver.Models
 {
     class Path
     {
-        public Step LastStep { get; set; }
+        public Node LastNode { get; set; }
         public PathStatus Status { get; set; } = PathStatus.Incomplete;
         public HashSet<string> UsedSteps { get; set; }
 
@@ -13,10 +13,12 @@ namespace MazeSolver.Models
         {
             var clone = new Path
             {
-                LastStep = new Step {Row = row, Col = col},
+                LastNode = new Node {Row = row, Col = col},
                 Status = Status,
                 // Clone the used steps and add the current.
-                UsedSteps = new HashSet<string>(UsedSteps ?? new HashSet<string>()) {GetKey(row, col)}
+                UsedSteps = new HashSet<string>(UsedSteps ?? new HashSet<string>()) {
+                    Node.GetKey(row, col)
+                }
             };
             return clone;
         }
@@ -25,12 +27,12 @@ namespace MazeSolver.Models
 
         public bool ContainsStep(int row, int col)
         {
-            return UsedSteps?.Contains(GetKey(row, col)) ?? false;
+            return UsedSteps?.Contains(Node.GetKey(row, col)) ?? false;
         }
 
-        string GetKey(int row, int col)
+        public override int GetHashCode()
         {
-            return $"{row}_{col}";
+            return (LastNode?.GetKey() ?? "empty").GetHashCode();
         }
     }
 }

@@ -90,10 +90,12 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\AStarSolver.cs" />
+    <Compile Include="Helpers\RemainingDistanceComparer.cs" />
     <Compile Include="Models\Path.cs" />
     <Compile Include="Models\PathStatus.cs" />
-    <Compile Include="Helpers\Solver.cs" />
-    <Compile Include="Models\Step.cs" />
+    <Compile Include="Helpers\BruteForceSolver.cs" />
+    <Compile Include="Models\Node.cs" />
     <Compile Include="Models\SolverResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

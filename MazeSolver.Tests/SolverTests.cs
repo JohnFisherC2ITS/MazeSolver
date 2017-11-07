@@ -32,7 +32,7 @@ namespace MazeSolver.Tests
         public void TestMaze1()
         {
             var maze = File.ReadAllText(Path.Combine(GetExecutingPath(), "maze1.txt"));
-            var result = Solver.Solve(maze);
+            var result = BruteForceSolver.Solve(maze);
 
         }
 
@@ -40,14 +40,14 @@ namespace MazeSolver.Tests
         public void TestMaze2()
         {
             var maze = File.ReadAllText(Path.Combine(GetExecutingPath(), "maze2.txt"));
-            var result = Solver.Solve(maze);
+            var result = BruteForceSolver.Solve(maze);
         }
 
         [TestMethod]
         public void TestMaze3()
         {
             var maze = File.ReadAllText(Path.Combine(GetExecutingPath(), "maze3.txt"));
-            var result = Solver.Solve(maze);
+            var result = BruteForceSolver.Solve(maze);
 
         }
     }
