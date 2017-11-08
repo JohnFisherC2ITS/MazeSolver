@@ -22,22 +22,10 @@ namespace MazeSolver.Helpers
 
         public static SolverResult Solve(string maze)
         {
-            var sw = new Stopwatch();
-            sw.Start();
-
             var solver = new AStarSolver(maze);
             var path = solver.FindAStarPath();
             if (path == null)
                 return null;
-
-            sw.Stop();
-
-            Console.WriteLine("Solutions: " + 1 + " found in " + sw.ElapsedMilliseconds + " milliseconds.");
-            Console.WriteLine();
-
-            Console.WriteLine("Steps: " + (path.Steps + 1));
-            Console.WriteLine(solver.GenerateSolution(path));
-            Console.WriteLine();
 
             return new SolverResult
             {
