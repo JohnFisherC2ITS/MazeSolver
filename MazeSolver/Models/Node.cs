@@ -4,8 +4,17 @@ namespace MazeSolver.Models
 {
     public class Node
     {
-        public int Row;
-        public int Col;
+        public readonly int Row;
+        public readonly int Col;
+
+        private readonly int mHashCode;
+
+        public Node(int row, int col)
+        {
+            Row = row;
+            Col = col;
+            mHashCode = GetKey().GetHashCode();
+        }
 
         public static string GetKey(int row, int col)
         {
@@ -17,14 +26,6 @@ namespace MazeSolver.Models
             return GetKey(Row, Col);
         }
 
-        public static Node FromKey(string key)
-        {
-            var split = key.Split('_');
-            var row = int.Parse(split[0]);
-            var col = int.Parse(split[1]);
-            return new Node {Row = row, Col = col};
-        }
-
         public int GetDistanceTo(Node goal)
         {
             return Math.Abs(Row - goal.Row) + Math.Abs(Col - goal.Col);
@@ -32,7 +33,7 @@ namespace MazeSolver.Models
 
         public override int GetHashCode()
         {
-            return GetKey().GetHashCode();
+            return mHashCode;
         }
 
         public override bool Equals(object obj)

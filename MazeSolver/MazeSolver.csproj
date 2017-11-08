@@ -82,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
+    <Content Include="index.html" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -92,7 +93,6 @@
     </Compile>
     <Compile Include="Helpers\AStarSolver.cs" />
     <Compile Include="Helpers\BaseSolver.cs" />
-    <Compile Include="Helpers\RemainingDistanceComparer.cs" />
     <Compile Include="Models\Path.cs" />
     <Compile Include="Models\PathStatus.cs" />
     <Compile Include="Helpers\BruteForceSolver.cs" />

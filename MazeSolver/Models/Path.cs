@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using MazeSolver.Helpers;
 
 namespace MazeSolver.Models
 {
@@ -13,7 +12,7 @@ namespace MazeSolver.Models
         {
             var clone = new Path
             {
-                LastNode = new Node {Row = row, Col = col},
+                LastNode = new Node(row, col),
                 Status = Status,
                 // Clone the used steps and add the current.
                 UsedSteps = new HashSet<string>(UsedSteps ?? new HashSet<string>())

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Web;
 using MazeSolver.Models;
 
 namespace MazeSolver.Helpers
@@ -15,9 +10,9 @@ namespace MazeSolver.Helpers
         private AStarSolver(string maze) : base(maze)
         {
             var lines = Regex.Split(maze, @"\r\n|\r|\n", RegexOptions.Compiled);
-            mArray = lines.Select(x => x.ToCharArray()).ToArray();
-            mHeight = mArray.Length;
-            mWidth = mArray.Max(x => x.Length);
+            Array = lines.Select(x => x.ToCharArray()).ToArray();
+            Height = Array.Length;
+            Width = Array.Max(x => x.Length);
         }
 
         public static SolverResult Solve(string maze)
@@ -34,69 +29,70 @@ namespace MazeSolver.Helpers
             };
         }
 
+        /// <summary>
+        /// The A* algorithm, from the pseudocode on Wikipedia (https://en.wikipedia.org/wiki/A*_search_algorithm)
+        /// </summary>
+        /// <returns></returns>
         Path FindAStarPath()
         {
-            var start = mBeginning;
-            var end = mGoal;
-            var endKey = end.GetKey();
+            var start = Beginning;
+            var end = Goal;
 
             // The set of nodes already evaluated
-            var closedSet = new HashSet<string>();
+            var closedSet = new HashSet<Node>();
 
             // The set of currently discovered nodes that are not evaluated yet.
             // Initially, only the start node is known.
-            var openSet = new HashSet<string>();
-            openSet.Add(start.GetKey());
+            var openSet = new HashSet<Node>();
+            openSet.Add(start);
 
             // For each node, which node it can most efficiently be reached from.
             // If a node can be reached from many nodes, cameFrom will eventually contain the
             // most efficient previous step.
-            var cameFrom = new Dictionary<string, Node>();
+            var cameFrom = new Dictionary<Node, Node>();
 
             // For each node, the cost of getting from the start node to that node.
-            var gScore = new Dictionary<string, int>();  // Default value should be infinity.
+            var gScore = new Dictionary<Node, int>();  // Default value should be infinity.
             // The cost of going from start to start is zero.
-            gScore.Add(start.GetKey(), 0);
+            gScore.Add(start, 0);
 
             // For each node, the total cost of getting from the start node to the goal
             // by passing by that node. That value is partly known, partly heuristic.
-            var fScore = new Dictionary<string, int>();  // Default value should be infinity.
+            var fScore = new Dictionary<Node, int>();  // Default value should be infinity.
             // For the first node, that value is completely heuristic.
-            fScore.Add(start.GetKey(), EstimateCost(start, end));
+            fScore.Add(start, EstimateCost(start, end));
 
             while (openSet.Any())
             {
                 var curr = openSet.Join(fScore, x => x, x => x.Key, (x, y) => new { Key = x, Cost = y.Value }).OrderBy(x => x.Cost).First();
-                var currentKey = curr.Key;
-                var currentNode = Node.FromKey(currentKey);
+                var current = curr.Key;
 
-                if (currentKey.Equals(endKey))
+                if (current.Equals(end))
                 {
-                    return ReconstructPath(cameFrom, currentNode);
+                    return ReconstructPath(cameFrom, current);
                 }
 
-                openSet.Remove(currentKey);
-                closedSet.Add(currentKey);
+                openSet.Remove(current);
+                closedSet.Add(current);
 
-                foreach (var neighborNode in GetNeighbors(currentNode))
+                foreach (var neighbor in GetNeighbors(current))
                 {
-                    var neighborKey = neighborNode.GetKey();
-                    if (closedSet.Contains(neighborKey))
+                    if (closedSet.Contains(neighbor))
                         continue;
 
-                    if (!openSet.Contains(neighborKey))
-                        openSet.Add(neighborNode.GetKey());
+                    if (!openSet.Contains(neighbor))
+                        openSet.Add(neighbor);
 
-                    var neighborScore = gScore.ContainsKey(neighborKey) ? gScore[neighborKey] : int.MaxValue;
-                    var tentativeScore = gScore.ContainsKey(currentKey) ? gScore[currentKey] : int.MaxValue;
-                    tentativeScore += currentNode.GetDistanceTo(neighborNode);
+                    var neighborScore = gScore.ContainsKey(neighbor) ? gScore[neighbor] : int.MaxValue;
+                    var tentativeScore = gScore.ContainsKey(current) ? gScore[current] : int.MaxValue;
+                    tentativeScore += current.GetDistanceTo(neighbor);
                     if (tentativeScore >= neighborScore)
                         continue;
 
                     // This path is the best until now.
-                    cameFrom[neighborKey] = currentNode;
-                    gScore[neighborKey] = tentativeScore;
-                    fScore[neighborKey] = gScore[neighborKey] + neighborNode.GetDistanceTo(end);
+                    cameFrom[neighbor] = current;
+                    gScore[neighbor] = tentativeScore;
+                    fScore[neighbor] = tentativeScore + neighbor.GetDistanceTo(end);
                 }
             }
 
@@ -119,14 +115,14 @@ namespace MazeSolver.Helpers
                     var col = current.Col + x;
 
                     // Don't go out of bounds
-                    if (row < 0 || row >= mHeight || col < 0 || col >= mWidth)
+                    if (row < 0 || row >= Height || col < 0 || col >= Width)
                         continue;
 
-                    switch (mArray[row][col])
+                    switch (Array[row][col])
                     {
                         case Clear:
                         case End:
-                            results.Add(new Node { Row = row, Col = col });
+                            results.Add(new Node(row, col));
                             break;
                     }
                 }
@@ -135,18 +131,18 @@ namespace MazeSolver.Helpers
             return results;
         }
 
-        private Path ReconstructPath(Dictionary<string, Node> cameFrom, Node current)
+        private Path ReconstructPath(Dictionary<Node, Node> cameFrom, Node current)
         {
             var nodes = new List<Node>();
             var node = current;
 
-            if (!node.Equals(mBeginning) && !node.Equals(mGoal))
+            if (!node.Equals(Beginning) && !node.Equals(Goal))
                 nodes.Add(node);
 
-            while (node != null && cameFrom.ContainsKey(node.GetKey()))
+            while (node != null && cameFrom.ContainsKey(node))
             {
-                node = cameFrom[node.GetKey()];
-                if (!node.Equals(mBeginning) && !node.Equals(mGoal))
+                node = cameFrom[node];
+                if (!node.Equals(Beginning) && !node.Equals(Goal))
                     nodes.Add(node);
             }
 
@@ -162,65 +158,5 @@ namespace MazeSolver.Helpers
         {
             return start.GetDistanceTo(goal);
         }
-
-        //function A*(start, goal)
-            //    // The set of nodes already evaluated
-            //    closedSet := {}
-            //
-            //    // The set of currently discovered nodes that are not evaluated yet.
-            //    // Initially, only the start node is known.
-            //    openSet := {start}
-            //
-            //    // For each node, which node it can most efficiently be reached from.
-            //    // If a node can be reached from many nodes, cameFrom will eventually contain the
-            //    // most efficient previous step.
-            //    cameFrom := an empty map
-            //
-            //    // For each node, the cost of getting from the start node to that node.
-            //    gScore := map with default value of Infinity
-            //
-            //    // The cost of going from start to start is zero.
-            //    gScore[start] := 0
-            //
-            //    // For each node, the total cost of getting from the start node to the goal
-            //    // by passing by that node. That value is partly known, partly heuristic.
-            //    fScore := map with default value of Infinity
-            //
-            //    // For the first node, that value is completely heuristic.
-            //    fScore[start] := heuristic_cost_estimate(start, goal)
-            //
-            //    while openSet is not empty
-            //        current := the node in openSet having the lowest fScore[] value
-            //        if current = goal
-            //            return reconstruct_path(cameFrom, current)
-            //
-            //        openSet.Remove(current)
-            //        closedSet.Add(current)
-            //
-            //        for each neighbor of current
-            //            if neighbor in closedSet
-            //                continue		// Ignore the neighbor which is already evaluated.
-            //
-            //            if neighbor not in openSet	// Discover a new node
-            //                openSet.Add(neighbor)
-            //            
-            //            // The distance from start to a neighbor
-            //            tentative_gScore := gScore[current] + dist_between(current, neighbor)
-            //            if tentative_gScore >= gScore[neighbor]
-            //                continue		// This is not a better path.
-            //
-            //            // This path is the best until now. Record it!
-            //            cameFrom[neighbor] := current
-            //            gScore[neighbor] := tentative_gScore
-            //            fScore[neighbor] := gScore[neighbor] + heuristic_cost_estimate(neighbor, goal) 
-            //
-            //    return failure
-            //
-            //function reconstruct_path(cameFrom, current)
-            //    total_path := [current]
-            //    while current in cameFrom.Keys:
-            //        current := cameFrom[current]
-            //        total_path.append(current)
-            //    return total_path
-        }
+    }
 }
