@@ -3,7 +3,7 @@ using MazeSolver.Helpers;
 
 namespace MazeSolver.Models
 {
-    class Path
+    public class Path
     {
         public Node LastNode { get; set; }
         public PathStatus Status { get; set; } = PathStatus.Incomplete;
@@ -16,7 +16,8 @@ namespace MazeSolver.Models
                 LastNode = new Node {Row = row, Col = col},
                 Status = Status,
                 // Clone the used steps and add the current.
-                UsedSteps = new HashSet<string>(UsedSteps ?? new HashSet<string>()) {
+                UsedSteps = new HashSet<string>(UsedSteps ?? new HashSet<string>())
+                {
                     Node.GetKey(row, col)
                 }
             };

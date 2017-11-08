@@ -18,9 +18,14 @@ namespace MazeSolver.Helpers
 
         public int Compare(Path x, Path y)
         {
-            var xNode = x.LastNode;
-            var yNode = y.LastNode;
-            return Math.Abs(xNode.Row - mGoal.Row) + Math.Abs(xNode.Col - mGoal.Col);
+            var xVal = x.LastNode.GetDistanceTo(mGoal);
+            var yVal = y.LastNode.GetDistanceTo(mGoal);
+
+            if (xVal <= yVal)
+                return -1;
+            return 1;
+
+            //return xVal.CompareTo(yVal);
         }
     }
 }

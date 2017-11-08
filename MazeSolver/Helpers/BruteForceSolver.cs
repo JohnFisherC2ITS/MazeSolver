@@ -10,19 +10,11 @@ using MazeSolver.Models;
 
 namespace MazeSolver.Helpers
 {
-    public class BruteForceSolver
+    /// <summary>
+    /// This works well for small mazes, but runs out of time and memory with large ones.
+    /// </summary>
+    public class BruteForceSolver : BaseSolver
     {
-        private const char Start = 'A';
-        private const char Clear = '.';
-        private const char Blocked = '#';
-        private const char Used = '@';
-        private const char End = 'B';
-
-        private int mHeight;
-        private int mWidth;
-        private char[][] mArray;
-        private Node mGoal;
-
         public static SolverResult Solve(string maze)
         {
             var sw = new Stopwatch();
@@ -54,35 +46,8 @@ namespace MazeSolver.Helpers
             };
         }
 
-        private BruteForceSolver(string maze)
+        private BruteForceSolver(string maze) : base(maze)
         {
-            var lines = Regex.Split(maze, @"\r\n|\r|\n", RegexOptions.Compiled);
-            mArray = lines.Select(x => x.ToCharArray()).ToArray();
-            mHeight = mArray.Length;
-            mWidth = mArray.Max(x => x.Length);
-            mGoal = Find(End);
-        }
-
-        private Node Find(char uniqueCharacter)
-        {
-            var row = -1;
-            var col = -1; // Set col to -1 until Start is found.
-
-            // Find A, the loops will stop when row and col are set.
-            for (var r = 0; r < mHeight && col < 0; ++r)
-            {
-                for (var c = 0; c < mWidth && row < 0; ++c)
-                {
-                    var spot = mArray[r][c];
-                    if (spot == uniqueCharacter)
-                    {
-                        row = r;
-                        col = c;
-                    }
-                }
-            }
-
-            return new Node { Row = row, Col = col };
         }
 
         private List<Path> FindCompletePaths()
@@ -158,22 +123,6 @@ namespace MazeSolver.Helpers
             }
 
             return result;
-        }
-
-        string GenerateSolution(Path path)
-        {
-            var result = new StringBuilder();
-            for (var r = 0; r < mHeight; ++r)
-            {
-                for (var c = 0; c < mWidth; ++c)
-                {
-                    var ch = path.ContainsStep(r, c) ? Used : mArray[r][c];
-                    result.Append(ch);
-                }
-                result.AppendLine();
-            }
-            
-            return result.ToString();
         }
     }
 }

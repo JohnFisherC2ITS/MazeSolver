@@ -2,7 +2,7 @@
 
 namespace MazeSolver.Models
 {
-    class Node
+    public class Node
     {
         public int Row;
         public int Col;
@@ -25,9 +25,20 @@ namespace MazeSolver.Models
             return new Node {Row = row, Col = col};
         }
 
-        public decimal GetDistanceTo(Node goal)
+        public int GetDistanceTo(Node goal)
         {
-            return (decimal)Math.Sqrt(Math.Pow(goal.Row - Row, 2) + Math.Pow(goal.Col - Col, 2));
+            return Math.Abs(Row - goal.Row) + Math.Abs(Col - goal.Col);
+        }
+
+        public override int GetHashCode()
+        {
+            return GetKey().GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            var node = obj as Node;
+            return obj != null && node.Row == Row && node.Col == Col;
         }
     }
 }

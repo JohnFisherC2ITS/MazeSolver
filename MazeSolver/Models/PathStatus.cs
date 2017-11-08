@@ -1,6 +1,6 @@
 ﻿namespace MazeSolver.Models
 {
-    enum PathStatus
+    public enum PathStatus
     {
         Incomplete,
         Finished

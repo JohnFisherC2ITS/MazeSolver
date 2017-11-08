@@ -14,7 +14,7 @@ namespace MazeSolver.Controllers
         [System.Web.Http.HttpPost]
         public IHttpActionResult SolveMaze(string maze)
         {
-            var result = BruteForceSolver.Solve(maze);
+            var result = AStarSolver.Solve(maze);
             return Ok(new { steps = result.Steps, solution = result.Solution });
         }
     }
